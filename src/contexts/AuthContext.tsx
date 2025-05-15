@@ -57,8 +57,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         title: "Account created",
         description: "Your account has been successfully created.",
       });
-      
-      return data;
     } catch (error: any) {
       toast({
         title: "Error",
@@ -84,8 +82,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
-      
-      return data;
     } catch (error: any) {
       toast({
         title: "Error",
