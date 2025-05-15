@@ -1,28 +1,44 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Layout from "@/components/layout/Layout";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function LoginPage() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { signIn } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
   
-  const handleSubmit = (e: React.FormEvent) => {
+  // Get the redirect path from location state or default to "/"
+  const from = (location.state as any)?.from?.pathname || "/";
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // In a real app, we would call an API to authenticate the user
-    setTimeout(() => {
+    try {
+      // Ensure phone number has the correct format (with country code)
+      const formattedPhone = phoneNumber.startsWith('+') 
+        ? phoneNumber 
+        : `+${phoneNumber.replace(/\D/g, '')}`;
+      
+      await signIn(formattedPhone, password);
+      navigate(from, { replace: true });
+    } catch (error) {
+      // Error is already handled in the signIn function
+      console.error("Login error:", error);
+    } finally {
       setIsLoading(false);
-      // For now, just simulate login
-      console.log("Login attempted with:", { phoneNumber, password });
-      // Later we'll implement real authentication with Supabase
-    }, 1000);
+    }
   };
   
   return (
@@ -46,6 +62,9 @@ export default function LoginPage() {
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   required
                 />
+                <p className="text-xs text-muted-foreground">
+                  Include country code (e.g., +998 for Uzbekistan)
+                </p>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">

@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDistance } from "date-fns";
-
-type TenderStatus = 'open' | 'pending' | 'accepted' | 'rejected' | 'closed';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { TenderStatus } from "@/types/tender";
 
 interface TenderCardProps {
   id: string;
@@ -14,8 +15,7 @@ interface TenderCardProps {
   deadline: string;
   category: string;
   status: TenderStatus;
-  createdAt: string;
-  offersCount?: number;
+  created_at: string;
 }
 
 export default function TenderCard({ 
@@ -26,27 +26,42 @@ export default function TenderCard({
   deadline, 
   category, 
   status, 
-  createdAt,
-  offersCount = 0
+  created_at
 }: TenderCardProps) {
   const statusColors: Record<TenderStatus, string> = {
     open: "bg-status-open",
-    pending: "bg-status-pending",
-    accepted: "bg-status-accepted",
-    rejected: "bg-status-rejected",
+    "in_review": "bg-status-pending",
+    awarded: "bg-status-accepted",
     closed: "bg-status-closed"
   };
 
   const statusLabels: Record<TenderStatus, string> = {
     open: "Open",
-    pending: "Pending",
-    accepted: "Accepted",
-    rejected: "Rejected",
+    "in_review": "In Review",
+    awarded: "Awarded",
     closed: "Closed"
   };
   
+  // Get offer count for this tender
+  const { data: offersCount = 0 } = useQuery({
+    queryKey: ['offerCount', id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('offers')
+        .select('*', { count: 'exact', head: true })
+        .eq('tender_id', id);
+      
+      if (error) {
+        console.error('Error fetching offer count:', error);
+        return 0;
+      }
+      
+      return count || 0;
+    }
+  });
+  
   const deadlineDate = new Date(deadline);
-  const createdAtDate = new Date(createdAt);
+  const createdAtDate = new Date(created_at);
   const timeLeft = formatDistance(deadlineDate, new Date(), { addSuffix: true });
   const timeAgo = formatDistance(createdAtDate, new Date(), { addSuffix: true });
 
@@ -67,7 +82,7 @@ export default function TenderCard({
           <div className="flex flex-col gap-1 mt-4">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Budget:</span>
-              <span className="text-sm font-bold">${budget.toLocaleString()}</span>
+              <span className="text-sm font-bold">${Number(budget).toLocaleString()}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Deadline:</span>

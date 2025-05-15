@@ -1,13 +1,33 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import TendersList from "@/components/tenders/TendersList";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function TendersPage() {
   const [searchParams] = useSearchParams();
   const category = searchParams.get("category");
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  const handleCreateTender = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to create a tender",
+        variant: "destructive",
+      });
+      navigate("/login", { state: { from: { pathname: "/tenders" } } });
+      return;
+    }
+    
+    navigate("/tenders/create");
+  };
   
   return (
     <Layout>
@@ -21,7 +41,7 @@ export default function TendersPage() {
               Find the perfect tender for your services
             </p>
           </div>
-          <Button>Create Tender</Button>
+          <Button onClick={handleCreateTender}>Create Tender</Button>
         </div>
         
         <TendersList showFilters={true} />

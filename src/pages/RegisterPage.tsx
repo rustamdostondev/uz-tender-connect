@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,8 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import Layout from "@/components/layout/Layout";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
@@ -20,18 +22,42 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { signUp } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "Please make sure your passwords match.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
-    // In a real app, we would call an API to register the user
-    setTimeout(() => {
+    try {
+      // Ensure phone number has the correct format (with country code)
+      const formattedPhone = phoneNumber.startsWith('+') 
+        ? phoneNumber 
+        : `+${phoneNumber.replace(/\D/g, '')}`;
+
+      await signUp(formattedPhone, password);
+      toast({
+        title: "Registration successful",
+        description: "Your account has been created. You can now log in.",
+      });
+      navigate("/login");
+    } catch (error: any) {
+      // Error is already handled in the signUp function
+      console.error("Registration error:", error);
+    } finally {
       setIsLoading(false);
-      // For now, just simulate registration
-      console.log("Registration attempted with:", { fullName, phoneNumber, password });
-      // Later we'll implement real registration with Supabase
-    }, 1000);
+    }
   };
   
   return (
@@ -65,6 +91,9 @@ export default function RegisterPage() {
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   required
                 />
+                <p className="text-xs text-muted-foreground">
+                  Include country code (e.g., +998 for Uzbekistan)
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
@@ -75,6 +104,7 @@ export default function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  minLength={6}
                 />
               </div>
               <div className="space-y-2">
@@ -86,6 +116,7 @@ export default function RegisterPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
+                  minLength={6}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
