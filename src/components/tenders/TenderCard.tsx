@@ -16,6 +16,7 @@ interface TenderCardProps {
   category: string;
   status: TenderStatus;
   created_at: string;
+  user_id?: string; // Added user_id as optional prop
 }
 
 export default function TenderCard({ 
@@ -26,7 +27,8 @@ export default function TenderCard({
   deadline, 
   category, 
   status, 
-  created_at
+  created_at,
+  user_id // Added user_id to destructuring (won't use it but need to accept it)
 }: TenderCardProps) {
   const statusColors: Record<TenderStatus, string> = {
     open: "bg-status-open",

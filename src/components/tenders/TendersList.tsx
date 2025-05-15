@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from '@tanstack/react-query';
 import TenderCard from "./TenderCard";
@@ -18,9 +17,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface TendersListProps {
   showFilters?: boolean;
   userId?: string;
+  tenders?: Tender[];
+  loading?: boolean;
 }
 
-export default function TendersList({ showFilters = true, userId }: TendersListProps) {
+export default function TendersList({ showFilters = true, userId, tenders: propTenders, loading: propLoading }: TendersListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -46,10 +47,15 @@ export default function TendersList({ showFilters = true, userId }: TendersListP
     }
   });
 
-  // Fetch tenders from Supabase
-  const { data: tenders = [], isLoading: tendersLoading } = useQuery({
+  // Fetch tenders from Supabase - only if not provided via props
+  const { data: fetchedTenders = [], isLoading: tendersLoading } = useQuery({
     queryKey: ['tenders', userId],
     queryFn: async () => {
+      // If tenders are provided via props, don't fetch them
+      if (propTenders !== undefined) {
+        return [];
+      }
+      
       let query = supabase
         .from('tenders')
         .select('*');
@@ -64,8 +70,13 @@ export default function TendersList({ showFilters = true, userId }: TendersListP
       if (error) throw error;
       
       return data as Tender[];
-    }
+    },
+    enabled: propTenders === undefined
   });
+
+  // Use either provided tenders or fetched tenders
+  const allTenders = propTenders || fetchedTenders;
+  const isLoading = propLoading !== undefined ? propLoading : tendersLoading;
 
   // Statuses from the enum
   const statuses = ["open", "closed", "in_review", "awarded"];
@@ -79,7 +90,7 @@ export default function TendersList({ showFilters = true, userId }: TendersListP
     { value: "5000+", label: "Over $5,000" }
   ];
 
-  const filteredTenders = tenders.filter(tender => {
+  const filteredTenders = allTenders.filter(tender => {
     // Search filter
     const matchesSearch = searchTerm
       ? tender.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -115,7 +126,7 @@ export default function TendersList({ showFilters = true, userId }: TendersListP
   };
 
   // Loading state
-  if (tendersLoading) {
+  if (isLoading) {
     return (
       <div className="w-full">
         {showFilters && (
