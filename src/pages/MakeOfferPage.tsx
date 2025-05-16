@@ -126,14 +126,19 @@ export default function MakeOfferPage() {
           })
           .select();
           
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase error:", error);
+          throw error;
+        }
         
         // Update tender status to in_review if it's currently open
         if (tender?.status === 'open') {
-          await supabase
+          const { error: tenderError } = await supabase
             .from('tenders')
             .update({ status: 'in_review' })
             .eq('id', tenderId);
+
+          if (tenderError) throw tenderError;
         }
         
         return data[0];

@@ -10,3 +10,33 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+// Initialize storage buckets if they don't exist
+const initializeStorage = async () => {
+  try {
+    // Check if tenders bucket exists, create if not
+    const { data: tendersBuckets } = await supabase.storage.getBucket('tenders');
+    if (!tendersBuckets) {
+      await supabase.storage.createBucket('tenders', {
+        public: true,
+        fileSizeLimit: 10485760 // 10MB limit
+      });
+      console.log('Created tenders storage bucket');
+    }
+    
+    // Check if offers bucket exists, create if not
+    const { data: offersBuckets } = await supabase.storage.getBucket('offers');
+    if (!offersBuckets) {
+      await supabase.storage.createBucket('offers', {
+        public: true,
+        fileSizeLimit: 10485760 // 10MB limit
+      });
+      console.log('Created offers storage bucket');
+    }
+  } catch (error) {
+    console.error('Error initializing storage buckets:', error);
+  }
+};
+
+// Call the initialization function
+initializeStorage();
