@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -52,7 +51,8 @@ export default function TenderDetailsPage() {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Offer[];
+      // Type assertion to handle the profiles structure
+      return data as unknown as Offer[];
     },
     enabled: !!id && !!user
   });
