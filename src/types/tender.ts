@@ -25,4 +25,24 @@ export interface Offer {
   file_url?: string | null;
   status: OfferStatus;
   created_at: string;
+  profiles?: {
+    id: string;
+    phone: string;
+    role: string;
+  };
+}
+
+export interface Profile {
+  id: string;
+  phone: string;
+  role: string;
+  created_at: string;
+}
+
+export interface AIScore {
+  id: string;
+  offer_id: string;
+  score_percentage: number;
+  comment?: string | null;
+  created_at: string;
 }

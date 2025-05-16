@@ -109,17 +109,17 @@ export default function CreateTenderPage() {
         if (file) {
           setIsUploading(true);
           const fileExt = file.name.split('.').pop();
-          const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
           
           const { error: uploadError, data } = await supabase.storage
-            .from('tender_files')
+            .from('tenders')
             .upload(fileName, file);
           
           if (uploadError) throw uploadError;
           
           // Get public URL for the file
           const { data: urlData } = supabase.storage
-            .from('tender_files')
+            .from('tenders')
             .getPublicUrl(fileName);
           
           fileUrl = urlData.publicUrl;
@@ -156,12 +156,13 @@ export default function CreateTenderPage() {
       });
       navigate(`/tenders/${data.id}`);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error creating tender",
         description: error.message || "There was a problem creating your tender.",
         variant: "destructive",
       });
+      setIsUploading(false);
     },
   });
 

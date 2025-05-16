@@ -12,6 +12,7 @@ interface AuthContextType {
   signUp: (phone: string, password: string) => Promise<void>;
   signIn: (phone: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  loginAsTestUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +22,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
+
+  // Function to login as test user
+  const loginAsTestUser = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        phone: '+998901234567',
+        password: 'Test1234',
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Logged in as test user",
+        description: "You're now using the test account.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to sign in as test user",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  // Auto-login as test user for development/preview
+  useEffect(() => {
+    const isPreview = window.location.hostname.includes('lovableproject.com');
+    const hasAutoLoginParam = new URLSearchParams(window.location.search).has('autologin');
+    
+    if ((isPreview || hasAutoLoginParam) && !user && !sessionStorage.getItem('skipped_auto_login')) {
+      const autoLogin = async () => {
+        try {
+          await loginAsTestUser();
+        } catch (error) {
+          console.error("Auto-login failed:", error);
+          // No need to show error toast for auto-login failure
+        }
+      };
+      
+      // Slight delay to ensure auth is initialized
+      setTimeout(autoLogin, 500);
+    }
+  }, []);
 
   useEffect(() => {
     // Set up auth state listener
@@ -104,6 +151,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         title: "Signed out",
         description: "You have been signed out successfully.",
       });
+      
+      // When signing out, mark that user has skipped auto-login
+      sessionStorage.setItem('skipped_auto_login', 'true');
     } catch (error: any) {
       toast({
         title: "Error",
@@ -122,6 +172,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signUp,
     signIn,
     signOut,
+    loginAsTestUser
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

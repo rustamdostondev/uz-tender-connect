@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import TendersPage from "./pages/TendersPage";
 import TenderDetailsPage from "./pages/TenderDetailsPage";
 import CreateTenderPage from "./pages/CreateTenderPage";
+import MakeOfferPage from "./pages/MakeOfferPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
@@ -40,6 +41,11 @@ const App = () => (
             <Route path="/tenders/create" element={
               <ProtectedRoute>
                 <CreateTenderPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/tenders/:id/offer/new" element={
+              <ProtectedRoute>
+                <MakeOfferPage />
               </ProtectedRoute>
             } />
             

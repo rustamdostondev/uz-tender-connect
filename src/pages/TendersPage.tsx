@@ -9,49 +9,46 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from '@/integrations/supabase/client';
 import { Tender } from "@/types/tender";
+import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 
 export default function TendersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-  const [tenders, setTenders] = useState<Tender[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchTenders();
-  }, [activeTab]);
-
-  const fetchTenders = async () => {
-    try {
-      setLoading(true);
-      let query = supabase.from('tenders').select('*');
-      
-      if (activeTab === 'open') {
-        query = query.eq('status', 'open');
-      } else if (activeTab === 'closed') {
-        query = query.in('status', ['closed', 'in_review', 'awarded']);
+  // Fetch tenders using React Query
+  const { data: tenders = [], isLoading } = useQuery({
+    queryKey: ['tenders', activeTab],
+    queryFn: async () => {
+      try {
+        let query = supabase.from('tenders').select('*');
+        
+        if (activeTab === 'open') {
+          query = query.eq('status', 'open');
+        } else if (activeTab === 'closed') {
+          query = query.in('status', ['closed', 'in_review', 'awarded']);
+        }
+        
+        const { data, error } = await query.order('created_at', { ascending: false });
+        
+        if (error) {
+          throw error;
+        }
+        
+        return data || [];
+      } catch (error) {
+        console.error('Error fetching tenders:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load tenders. Please try again later.",
+          variant: "destructive",
+        });
+        return [];
       }
-      
-      const { data, error } = await query.order('created_at', { ascending: false });
-      
-      if (error) {
-        throw error;
-      }
-      
-      setTenders(data || []);
-    } catch (error) {
-      console.error('Error fetching tenders:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load tenders. Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
 
   const filteredTenders = tenders.filter(tender => 
     tender.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -89,15 +86,15 @@ export default function TendersPage() {
           </TabsList>
           
           <TabsContent value="all" className="space-y-4">
-            <TendersList tenders={filteredTenders} loading={loading} />
+            <TendersList tenders={filteredTenders} loading={isLoading} />
           </TabsContent>
           
           <TabsContent value="open" className="space-y-4">
-            <TendersList tenders={filteredTenders} loading={loading} />
+            <TendersList tenders={filteredTenders} loading={isLoading} />
           </TabsContent>
           
           <TabsContent value="closed" className="space-y-4">
-            <TendersList tenders={filteredTenders} loading={loading} />
+            <TendersList tenders={filteredTenders} loading={isLoading} />
           </TabsContent>
         </Tabs>
       </div>
