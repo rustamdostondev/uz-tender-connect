@@ -12,7 +12,7 @@ import { AlertTriangle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function LoginPage() {
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -30,12 +30,7 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      // Ensure phone number has the correct format (with country code)
-      const formattedPhone = phoneNumber.startsWith('+') 
-        ? phoneNumber 
-        : `+${phoneNumber.replace(/\D/g, '')}`;
-      
-      await signIn(formattedPhone, password);
+      await signIn(email, password);
       navigate(from, { replace: true });
     } catch (error: any) {
       console.error("Login error:", error);
@@ -67,7 +62,7 @@ export default function LoginPage() {
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="text-2xl font-bold">Login</CardTitle>
             <CardDescription>
-              Enter your phone number and password to access your account
+              Enter your email and password to access your account
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -80,17 +75,15 @@ export default function LoginPage() {
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="phoneNumber">Phone Number</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="phoneNumber"
-                  placeholder="+998 XX XXX XX XX"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="your.email@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
-                <p className="text-xs text-muted-foreground">
-                  Include country code (e.g., +998 for Uzbekistan)
-                </p>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">

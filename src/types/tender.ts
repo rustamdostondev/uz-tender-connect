@@ -27,14 +27,14 @@ export interface Offer {
   created_at: string;
   profiles?: {
     id: string;
-    phone: string;
+    email: string;
     role: string;
   };
 }
 
 export interface Profile {
   id: string;
-  phone: string;
+  email: string;
   role: string;
   created_at: string;
 }

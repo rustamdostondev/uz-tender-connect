@@ -9,8 +9,8 @@ interface AuthContextType {
   session: Session | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  signUp: (phone: string, password: string) => Promise<void>;
-  signIn: (phone: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   loginAsTestUser: () => Promise<void>;
 }
@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const loginAsTestUser = async () => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        phone: '+998901234567',
+        email: 'test@example.com',
         password: 'Test1234',
       });
       
@@ -89,10 +89,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (phone: string, password: string) => {
+  const signUp = async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signUp({
-        phone,
+        email,
         password,
       });
       
@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       toast({
         title: "Account created",
-        description: "Your account has been successfully created.",
+        description: "Your account has been successfully created. Please check your email for verification.",
       });
     } catch (error: any) {
       toast({
@@ -114,10 +114,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signIn = async (phone: string, password: string) => {
+  const signIn = async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        phone,
+        email,
         password,
       });
       

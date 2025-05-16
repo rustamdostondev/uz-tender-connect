@@ -20,7 +20,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -41,15 +41,10 @@ export default function RegisterPage() {
     setIsLoading(true);
     
     try {
-      // Ensure phone number has the correct format (with country code)
-      const formattedPhone = phoneNumber.startsWith('+') 
-        ? phoneNumber 
-        : `+${phoneNumber.replace(/\D/g, '')}`;
-
-      await signUp(formattedPhone, password);
+      await signUp(email, password);
       toast({
         title: "Registration successful",
-        description: "Your account has been created. You can now log in.",
+        description: "Your account has been created. Please check your email for verification.",
       });
       navigate("/login");
     } catch (error: any) {
@@ -105,17 +100,15 @@ export default function RegisterPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phoneNumber">Phone Number</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="phoneNumber"
-                  placeholder="+998 XX XXX XX XX"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="your.email@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
-                <p className="text-xs text-muted-foreground">
-                  Include country code (e.g., +998 for Uzbekistan)
-                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
